@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.launch;
 
+import dev.soapy.cursedminicraft.MinicraftGameProvider;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -89,7 +90,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.Environment");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
 
-		GameProvider provider = new MinecraftGameProvider();
+		GameProvider provider = new MinicraftGameProvider();
 		provider.acceptArguments(arguments);
 
 		if (!provider.locateGame(getEnvironmentType(), launchClassLoader)) {
@@ -124,7 +125,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		FabricLoader.INSTANCE.getAccessWidener().loadFromMods();
 
-		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
+		//MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
+		MinicraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 
 		// Setup Mixin environment
 		MixinBootstrap.init();

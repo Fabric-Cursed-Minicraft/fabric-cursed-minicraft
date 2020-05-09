@@ -1,20 +1,22 @@
-import com.google.gson.Gson
+/*import com.google.gson.Gson
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
+import com.google.gson.JsonObject*/
 
 plugins {
 	id 'java'
 	id 'maven-publish'
 
+	id "com.github.johnrengelman.shadow" version "5.2.0"
+
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.6-SNAPSHOT"
+	//id("fabric-loom") version "0.2.6-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = "fabric-loader"
+archivesBaseName = "fabric-cursed-minicraft"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
@@ -35,14 +37,20 @@ repositories {
 		name = 'mojang'
 		url = 'https://libraries.minecraft.net/'
 	}
+	maven {
+		name = 'minicraft'
+		url = "https://raw.githubusercontent.com/SoapyXM/Minicraft/master/releases"
+	}
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.14.4"
-	mappings "net.fabricmc:yarn:1.14.4+build.1"
+	//minecraft "com.mojang:minecraft:1.14.4"
+	//mappings "net.fabricmc:yarn:1.14.4+build.1"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
+
+	implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
 
 	// fabric-loader dependencies
 	compile 'org.ow2.asm:asm:8.0'
@@ -50,6 +58,11 @@ dependencies {
 	compile 'org.ow2.asm:asm-commons:8.0'
 	compile 'org.ow2.asm:asm-tree:8.0'
 	compile 'org.ow2.asm:asm-util:8.0'
+
+	compile 'com.google.guava:guava:21.0'
+
+	implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.8.1'
+	implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
 
 	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
@@ -66,6 +79,8 @@ dependencies {
 		transitive = false
 	}
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+
+	compile 'com.mojang:Minicraft:1.0.0'
 }
 
 processResources {
@@ -84,19 +99,20 @@ processResources {
 jar {
 	manifest {
 		attributes (
-			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
+			//'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
+			'Main-class': 'net.fabricmc.loader.launch.knot.Knot'
 		)
 	}
 }
 
-task copyJson(type: Copy, dependsOn: ["remapJar"]) {
+task copyJson(type: Copy) {
 	from('src/main/resources/fabric-installer.json') {
 		rename { "${archivesBaseName}-${version}.json" }
 	}
 	into 'build/libs'
 }
 
-task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
+task copyJsonLw(type: Copy) {
 	from('src/main/resources/fabric-installer.launchwrapper.json') {
 		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
 	}
@@ -106,7 +122,7 @@ task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
 tasks.build.dependsOn "copyJson"
 tasks.build.dependsOn "copyJsonLw"
 
-String getClasspathEntries(){
+/*String getClasspathEntries(){
 	String classPath = ""
 	File installerFile = file("src/main/resources/fabric-installer.json")
 	JsonObject object = Gson.newInstance().fromJson(new InputStreamReader(new FileInputStream(installerFile)), JsonObject.class)
@@ -121,7 +137,7 @@ String getClasspathEntries(){
 	}
 
 	return classPath;
-}
+}*/
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
@@ -136,16 +152,16 @@ publishing {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
 			artifact(file("${project.buildDir}/libs/$archivesBaseName-${version}.jar")) {
-				builtBy remapJar
+				builtBy build
 			}
 			artifact(sourcesJar) {
-				builtBy remapSourcesJar
+				builtBy build
 			}
 			artifact(file('src/main/resources/fabric-installer.json')) {
-				builtBy remapJar
+				builtBy build
 			}
 			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
-				builtBy remapJar
+				builtBy build
 				classifier = "launchwrapper"
 			}
 		}
@@ -153,14 +169,8 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-		if (project.hasProperty('mavenPass')) {
-			maven {
-				url = "http://mavenupload.modmuss50.me/"
-				credentials {
-					username = "buildslave"
-					password = project.getProperty('mavenPass')
-				}
-			}
+		maven {
+			url = "${project.rootDir}/releases"
 		}
 	}
 }

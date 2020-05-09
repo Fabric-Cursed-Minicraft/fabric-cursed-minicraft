@@ -14,64 +14,55 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.game;
+package dev.soapy.cursedminicraft;
 
-import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
+import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.game.GameProviderHelper;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
-import net.fabricmc.loader.minecraft.McVersionLookup;
-import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
 import net.fabricmc.loader.util.Arguments;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class MinecraftGameProvider implements GameProvider {
-	private static final Gson GSON = new Gson();
+public class MinicraftGameProvider implements GameProvider {
 
 	private EnvType envType;
 	private String entrypoint;
+	private Path gameJar;
 	private Arguments arguments;
-	private Path gameJar, realmsJar;
-	private McVersion versionData;
-	private boolean hasModLoader = false;
 
 	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
-			new EntrypointPatchHook(it),
-			new EntrypointPatchBranding(it),
-			new EntrypointPatchFML125(it)
+
 	));
 
 	@Override
 	public String getGameId() {
-		return "minecraft";
+		return "minicraft";
 	}
 
 	@Override
 	public String getGameName() {
-		return "Minecraft";
+		return "Minicraft";
 	}
 
 	@Override
 	public String getRawGameVersion() {
-		return versionData.raw;
+		return "1.0.0";
 	}
 
 	@Override
 	public String getNormalizedGameVersion() {
-		return versionData.normalized;
+		return "1.0.0";
 	}
 
 	@Override
@@ -85,10 +76,9 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		return Arrays.asList(
-			new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
-				.setName(getGameName())
-				.build())
-		);
+				new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
+						.setName(getGameName())
+						.build()));
 	}
 
 	@Override
@@ -98,43 +88,29 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public Path getLaunchDirectory() {
-		if (arguments == null) {
-			return new File(".").toPath();
-		}
-
-		return FabricLauncherBase.getLaunchDirectory(arguments).toPath();
+		return new File(".").toPath();
 	}
 
 	@Override
 	public boolean isObfuscated() {
-		return true; // generally yes...
+		return false;
 	}
 
 	@Override
 	public boolean requiresUrlClassLoader() {
-		return hasModLoader;
+		return false;
 	}
 
 	@Override
 	public List<Path> getGameContextJars() {
-		List<Path> list = new ArrayList<>();
-		list.add(gameJar);
-		if (realmsJar != null) {
-			list.add(realmsJar);
-		}
-		return list;
+		return Arrays.asList(gameJar);
 	}
 
 	@Override
 	public boolean locateGame(EnvType envType, ClassLoader loader) {
 		this.envType = envType;
-		List<String> entrypointClasses;
 
-		if (envType == EnvType.CLIENT) {
-			entrypointClasses = Arrays.asList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
-		} else {
-			entrypointClasses = Arrays.asList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
-		}
+		List<String> entrypointClasses = Arrays.asList("com.mojang.ld22.Game", "com.mojang.ld22.GameApplet");
 
 		Optional<GameProviderHelper.EntrypointResult> entrypointResult = GameProviderHelper.findFirstClass(loader, entrypointClasses);
 		if (!entrypointResult.isPresent()) {
@@ -143,9 +119,6 @@ public class MinecraftGameProvider implements GameProvider {
 
 		entrypoint = entrypointResult.get().entrypointName;
 		gameJar = entrypointResult.get().entrypointPath;
-		realmsJar = GameProviderHelper.getSource(loader, "realmsVersion").orElse(null);
-		hasModLoader = GameProviderHelper.getSource(loader, "ModLoader.class").isPresent();
-		versionData = McVersionLookup.getVersion(gameJar);
 
 		return true;
 	}
@@ -161,21 +134,6 @@ public class MinecraftGameProvider implements GameProvider {
 	@Override
 	public EntrypointTransformer getEntrypointTransformer() {
 		return TRANSFORMER;
-	}
-
-	@Override
-	public boolean canOpenErrorGui() {
-		// Disabled on macs due to -XstartOnFirstThread being incompatible with awt but required for lwjgl
-		if (System.getProperty("os.name").equals("Mac OS X")) {
-			return false;
-		}
-
-		if (arguments == null || envType == EnvType.CLIENT) {
-			return true;
-		}
-
-		List<String> extras = arguments.getExtraArgs();
-		return !extras.contains("nogui") && !extras.contains("--nogui");
 	}
 
 	@Override

@@ -218,6 +218,6 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	public static void main(String[] args) {
-		new Knot(null, null).init(args);
+		new Knot(EnvType.CLIENT, null).init(args);
 	}
 }

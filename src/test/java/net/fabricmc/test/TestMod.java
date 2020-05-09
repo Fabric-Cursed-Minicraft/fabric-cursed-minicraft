@@ -19,13 +19,12 @@ package net.fabricmc.test;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class TestMod implements PreLaunchEntrypoint, ModInitializer {
 
-	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
+	private static final Logger LOGGER = LogManager.getLogger("TestMod");
 
 	/**
 	 * Entrypoint implementation for preLaunch.

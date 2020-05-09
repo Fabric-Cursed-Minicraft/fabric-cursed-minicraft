@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.transformer;
 
+import dev.soapy.cursedminicraft.MinicraftGameProvider;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.MinecraftGameProvider;
@@ -31,7 +32,7 @@ public final class FabricTransformer {
 		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
 		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
 
-		byte[] input = MinecraftGameProvider.TRANSFORMER.transform(name);
+		byte[] input = MinicraftGameProvider.TRANSFORMER.transform(name);
 		if (input != null) {
 			return FabricTransformer.transform(isDevelopment, envType, name, input);
 		} else {

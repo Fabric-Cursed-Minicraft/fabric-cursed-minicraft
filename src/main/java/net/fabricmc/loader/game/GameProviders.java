@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.game;
 
+import dev.soapy.cursedminicraft.MinicraftGameProvider;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -23,6 +25,6 @@ public final class GameProviders {
 	private GameProviders() { }
 
 	public static List<GameProvider> create() {
-		return Collections.singletonList(new MinecraftGameProvider());
+		return Collections.singletonList(new MinicraftGameProvider());
 	}
 }
