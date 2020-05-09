@@ -1,5 +1,10 @@
 # Ignore everything
-/*
+# /*
+
+/run/
+/build/
+/.gradle/
+/.idea/
 
 # Folders
 !/gradle

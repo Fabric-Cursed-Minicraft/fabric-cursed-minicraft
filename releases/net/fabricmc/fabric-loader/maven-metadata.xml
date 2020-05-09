@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>net.fabricmc</groupId>
+  <artifactId>fabric-loader</artifactId>
+  <versioning>
+    <latest>0.8.2+local</latest>
+    <release>0.8.2+local</release>
+    <versions>
+      <version>0.8.2+local</version>
+    </versions>
+    <lastUpdated>20200509151610</lastUpdated>
+  </versioning>
+</metadata>
